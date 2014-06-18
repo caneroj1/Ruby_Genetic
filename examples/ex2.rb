@@ -13,9 +13,6 @@ end
 
 gene_to_item_func = lambda { |gene| gene }
 
-pop = Genetic::Population.new(member_count: 30,
-															member_length: 8,
-															evolutions: 20,
-															&fitness_func)
+pop = Genetic::Population.new(member_count: 30, member_length: 8, evolutions: 20, &fitness_func)
 
 pop.evolve(&gene_to_item_func)
