@@ -57,21 +57,19 @@ module Genetic
       @evolutions = opts[:evolutions].nil? ? 100 : opts[:evolutions]
       @member_count = opts[:member_count].nil? ? 20 : opts[:member_count]
       @member_length = opts[:member_length].nil? ? 8 : opts[:member_length]
-      @display = opts[:reports].nil? ? false : opts[:reports]
+      @reports = opts[:reports].nil? ? false : opts[:reports]
       @mutations = opts[:mutations].nil? ? false : opts[:mutations]
     end
 
     def fitness_error
       <<-FITNESS
-        Fitness Function block is required. Please pass in a block with the key
-        "fitness" as a symbol.
+        Fitness Function block is required. Please pass in a block with the key "fitness" as a symbol.
       FITNESS
     end
 
     def gene_to_value_error
       <<-GENE
-        Gene to Real Value block is required. Please pass in a block with the key
-        "real" as a symbol.
+        Gene to Real Value block is required. Please pass in a block with the key "real" as a symbol.
       GENE
     end
 

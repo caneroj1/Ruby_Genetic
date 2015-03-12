@@ -116,22 +116,22 @@ describe Genetic::Population do
 	it 'should be able to run a tournament' do
 		Kernel.stub(:rand).and_return(0)
 		test_unit = Genetic::Population.new(:member_count => 5, :member_length => 4) { "tournament_test" }
-		
+
 		def test_unit.modify_individual(ind, gene)
 			@individuals[ind].gene = Bitset.from_s(gene)
 		end
 
 		bit_array = %w{ 0000 0001 0010 0011 0100 }
 
-		test_unit.each_with_index do |unit, index| 
+		test_unit.each_with_index do |unit, index|
 			def unit.gene=(g)
 				@gene = g
 			end
-			unit.fitness = index 
+			unit.fitness = index
 			test_unit.modify_individual(index, bit_array[index])
 		end
 
-		winner = test_unit.send(:run_tournament)
-		expect(winner.gene.to_s).to eq bit_array[1]
+		winners = test_unit.send(:tournament_selection)
+		expect(winners.count).to eq test_unit.member_count
 	end
 end
