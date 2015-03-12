@@ -7,7 +7,7 @@ module Genetic
 	## and a random value
 	class Population
 		include Enumerable
-		attr_reader :individuals, :member_count, :member_length, :fitness
+		attr_reader :individuals, :member_count, :member_length, :fitness, :display
 		attr_accessor :evolution_count
 
 		## initialize method will accept attributes to initialize the population
@@ -15,9 +15,10 @@ module Genetic
 		def initialize(options = {}, &fitness_func)
 			raise ArgumentError, "Fitness function is required. Pass in a block." unless block_given?
 			raise ArgumentError, "Parameters must include :member_count, :member_length" if options[:member_count].nil? || options[:member_length].nil?
-			
+
 			@do_mutations = options[:mutations].nil? ? false : options[:mutations]
 			@evolution_count = options[:evolutions].nil? ? 15 : options[:evolutions]
+			@display = options[:display].nil? ? false : options[:display]
 			@member_length, @member_count, @fitness = options[:member_length], options[:member_count], fitness_func
 
 			randomize_bitsets
@@ -46,9 +47,15 @@ module Genetic
 		def disp_results(&gene_to_real_value_block)
 			sort_by_fitness
 			best_individual = @individuals[@member_count - 1]
-			puts "Most Fit Gene: #{best_individual.gene}"
-			puts "Gene Value: #{gene_to_real_value_block.call(best_individual.gene)}"
-			puts "Fitness: #{best_individual.fitness}"
+			best_value = gene_to_real_value_block.call(best_individual.gene)
+
+			if @display
+				puts "Most Fit Gene: #{best_individual.gene}"
+				puts "Gene Value: #{best_value}"
+				puts "Fitness: #{best_individual.fitness}"
+			end
+
+			{ value: best_value, fitness: best_individual.fitness }
 		end
 
 		def randomize_bitsets
@@ -59,29 +66,22 @@ module Genetic
 		def tournament_selection
 			winners = []
 
-			tournaments = 
-			if (@member_count / 2) % 2 == 0
-				(@member_count / 2)
-			else
-				(@member_count / 2) + 1
-			end
-
-			tournaments.times { winners << run_tournament }
+			tourney_array = populate_tournament_array
+			@member_count.times { winners << tourney_array[Kernel.rand(0...tourney_array.count)] }
 			winners
 		end
 
-		def run_tournament
-			copy, winner = @individuals.dup, nil
-			(@member_count / 2).times do |individual|
-				position = Kernel.rand(0...copy.count)
-				if winner.nil?
-					winner = copy[position]
-				elsif winner.fitness < copy[position].fitness
-					winner = copy[position]
+		def populate_tournament_array
+			population_copy = []
+			total_fitness = @individuals.inject(0) { |fitness, individual| fitness += individual.fitness }
+
+			@individuals.each do |individual|
+				((individual.fitness / total_fitness) * 100).ceil.times do
+					population_copy << individual
 				end
-				copy.delete_at(position)
 			end
-			winner
+
+			population_copy
 		end
 
 		def crossover(fit_parents)
@@ -100,7 +100,7 @@ module Genetic
 						parent_two.gene[index] = bit
 					end
 				end
-				
+
 				results << parent_one
 				results << parent_two
 			end
@@ -125,11 +125,11 @@ module Genetic
 
 		def generate_random_binary
 			binary_string = ""
-			@member_length.times do 
-				if Kernel.rand(0.0..1.0) < 0.5 
+			@member_length.times do
+				if Kernel.rand(0.0..1.0) < 0.5
 					binary_string << "0"
-				else 
-					binary_string << "1" 
+				else
+					binary_string << "1"
 				end
 			end
 			binary_string
@@ -139,7 +139,7 @@ module Genetic
 			@individuals.each { |individual| individual.fitness = @fitness.call(gene_to_real_value_block.call(individual.gene)) }
 		end
 
-		def sort_by_fitness 
+		def sort_by_fitness
 			@individuals.sort!
 		end
 	end
